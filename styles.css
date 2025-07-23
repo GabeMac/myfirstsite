@@ -1,0 +1,28 @@
+body {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #b3e0ff;
+}
+h1 {
+    font-size: 3rem;
+    margin-bottom: 2rem;
+    color: #222;
+}
+.contact-btn {
+    padding: 1rem 2.5rem;
+    font-size: 1.25rem;
+    background: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.contact-btn:hover {
+    background: #0056b3;
+}
