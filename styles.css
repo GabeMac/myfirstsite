@@ -7,7 +7,7 @@ body {
     margin: 0;
     padding: 0;
     font-family: Arial, sans-serif;
-    background: linear-gradient(to top, #ffffff 0%, #ffd6ec 100%);
+    background: #ffffff;
 }
 
 .site-header {
@@ -280,4 +280,49 @@ h1 {
 @keyframes emojiFloat {
     0%, 100% { transform: translateX(0); }
     50% { transform: translateX(-20px); }
+}
+
+/* Weather Widget Integration */
+.weather-section {
+    width: 100%;
+    max-width: 1200px;
+    margin: 3rem auto;
+    padding: 2rem;
+    text-align: center;
+}
+
+.weather-section h2 {
+    color: #8e2de2;
+    font-size: 2.5rem;
+    margin-bottom: 2rem;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+    background: linear-gradient(45deg, #8e2de2, #4a00e0);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.weather-section .weather-widget {
+    margin: 0 auto;
+    box-shadow: 0 15px 35px rgba(142, 45, 226, 0.2);
+    border: 2px solid rgba(142, 45, 226, 0.1);
+}
+
+/* Adjust weather widget background to match homepage theme */
+.weather-section .weather-widget {
+    background: rgba(255, 255, 255, 0.98) !important;
+    backdrop-filter: blur(15px) !important;
+}
+
+/* Mobile responsiveness for weather section */
+@media (max-width: 768px) {
+    .weather-section {
+        padding: 1rem;
+        margin: 2rem auto;
+    }
+    
+    .weather-section h2 {
+        font-size: 2rem;
+        margin-bottom: 1.5rem;
+    }
 }
