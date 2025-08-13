@@ -135,7 +135,9 @@ class WeatherService {
                 daily: 'weather_code,temperature_2m_max,temperature_2m_min,apparent_temperature_max,apparent_temperature_min,precipitation_sum,wind_speed_10m_max',
                 hourly: 'temperature_2m,weather_code',
                 timezone: 'auto',
-                forecast_days: 5
+                forecast_days: 5,
+                temperature_unit: 'fahrenheit',
+                wind_speed_unit: 'mph'
             });
 
             const url = `${this.baseURL}?${params}`;
@@ -171,6 +173,61 @@ class WeatherService {
         } catch (error) {
             console.warn('City search failed:', error);
             return []; // Return empty array on error to prevent UI breakage
+        }
+    }
+
+    async reverseGeocode(latitude, longitude) {
+        try {
+            // Use OpenStreetMap Nominatim for reverse geocoding (free, no API key needed)
+            const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=10&addressdetails=1`;
+            
+            // Add User-Agent header as required by Nominatim usage policy
+            const response = await NetworkUtils.fetchWithRetry(url, {
+                headers: {
+                    'User-Agent': 'WeatherWidget/1.0 (https://myfirstsite.local)'
+                }
+            });
+            const data = await response.json();
+            
+            if (data && data.address) {
+                const address = data.address;
+                
+                // Extract city name (try different fields)
+                const city = address.city || address.town || address.village || address.municipality || address.hamlet || 'Unknown City';
+                
+                // Extract state/region (try different fields)
+                const state = address.state || address.region || address.province || address.county || '';
+                
+                // Extract country
+                const country = address.country || 'Unknown Country';
+                
+                return {
+                    name: city,
+                    country: country,
+                    admin1: state,
+                    latitude: latitude,
+                    longitude: longitude
+                };
+            }
+            
+            // Fallback if no results
+            return {
+                name: 'Your Location',
+                country: 'Current Location',
+                admin1: '',
+                latitude: latitude,
+                longitude: longitude
+            };
+        } catch (error) {
+            console.warn('Reverse geocoding failed:', error);
+            // Return fallback location info
+            return {
+                name: 'Your Location',
+                country: 'Current Location', 
+                admin1: '',
+                latitude: latitude,
+                longitude: longitude
+            };
         }
     }
 }
@@ -372,6 +429,36 @@ class WeatherWidget {
         }
     }
 
+    async initWithCoordinates(latitude, longitude) {
+        this.container.innerHTML = this.getLoadingHTML();
+        
+        try {
+            // Get location name from coordinates using reverse geocoding
+            const locationInfo = await this.weatherService.reverseGeocode(latitude, longitude);
+            this.currentLocationInfo = locationInfo;
+            
+            // Get weather data using coordinates
+            const weatherData = await this.weatherService.getWeatherData(latitude, longitude);
+            
+            // Validate weather data structure
+            if (!weatherData || !weatherData.current || !weatherData.daily) {
+                throw new Error('Invalid weather data received. Please try again.');
+            }
+            
+            // Process and render the data
+            const currentWeather = WeatherDataProcessor.processCurrentWeather(weatherData, locationInfo);
+            const forecast = WeatherDataProcessor.processForecast(weatherData);
+            
+            this.render(currentWeather, forecast);
+            
+        } catch (error) {
+            console.error('Error loading weather with coordinates:', error);
+            // Fallback to default city if coordinate-based loading fails
+            this.showError('Failed to load location-based weather', 'Falling back to default location...');
+            setTimeout(() => this.init('London'), 2000);
+        }
+    }
+
     async loadWeather(cityName) {
         this.showLoading();
         
@@ -443,8 +530,8 @@ class WeatherWidget {
                 </div>
                 <div class="current-time">Updated: ${currentWeather.current.time}</div>
                 <div class="weather-icon">${currentWeather.current.icon}</div>
-                <div class="temperature">${currentWeather.current.temperature}°C</div>
-                <div class="feels-like">Feels like ${currentWeather.current.feelsLike}°C</div>
+                <div class="temperature">${currentWeather.current.temperature}°F</div>
+                <div class="feels-like">Feels like ${currentWeather.current.feelsLike}°F</div>
                 <div class="weather-description">${currentWeather.current.description}</div>
             </div>
 
@@ -459,7 +546,7 @@ class WeatherWidget {
                 </div>
                 <div class="detail-item">
                     <div class="detail-label">Wind Speed</div>
-                    <div class="detail-value">${currentWeather.current.windSpeed} km/h ${WeatherDataProcessor.getWindDirection(currentWeather.current.windDirection)}</div>
+                    <div class="detail-value">${currentWeather.current.windSpeed} mph ${WeatherDataProcessor.getWindDirection(currentWeather.current.windDirection)}</div>
                 </div>
                 <div class="detail-item">
                     <div class="detail-label">Precipitation</div>
@@ -511,7 +598,7 @@ class WeatherWidget {
 
     renderDailyForecast(forecast) {
         return forecast.map(day => `
-            <div class="forecast-item daily-item" title="Feels like ${day.feelsLikeMax}°/${day.feelsLikeMin}°, Wind: ${day.maxWind} km/h">
+            <div class="forecast-item daily-item" title="Feels like ${day.feelsLikeMax}°/${day.feelsLikeMin}°, Wind: ${day.maxWind} mph">
                 <div class="forecast-day">${day.dayName}</div>
                 <div class="forecast-desc">${day.description}</div>
                 <div class="forecast-temps">

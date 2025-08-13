@@ -53,7 +53,33 @@
         // Initialize the weather widget when the page loads
         document.addEventListener('DOMContentLoaded', function() {
             const widget = new WeatherWidget('weatherWidget');
-            widget.init('London'); // Default city - you can change this
+            
+            // Try to get user's location first, fallback to London
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    // Success callback
+                    function(position) {
+                        const lat = position.coords.latitude;
+                        const lon = position.coords.longitude;
+                        widget.initWithCoordinates(lat, lon);
+                    },
+                    // Error callback - fallback to London
+                    function(error) {
+                        console.log('Location access denied or failed:', error.message);
+                        widget.init('London');
+                    },
+                    // Options
+                    {
+                        timeout: 10000, // 10 second timeout
+                        enableHighAccuracy: false,
+                        maximumAge: 300000 // Cache for 5 minutes
+                    }
+                );
+            } else {
+                // Geolocation not supported - fallback to London
+                console.log('Geolocation not supported by this browser');
+                widget.init('London');
+            }
         });
     </script>
 </body>
