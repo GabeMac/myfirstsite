@@ -283,6 +283,16 @@ h1 {
     50% { transform: translateX(-20px); }
 }
 
+/* Emoji Banner positioning below hero */
+.emoji-banner {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    padding: 1rem 0;
+    border-bottom: 1px solid rgba(142, 45, 226, 0.1);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
 /* Weather Widget Integration */
 .weather-section {
     width: 100%;
