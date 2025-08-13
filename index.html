@@ -9,7 +9,7 @@
 </head>
 <body>
     <div class="hero-section">
-        <img src="https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=1200&q=80" alt="Banner" class="banner-image" loading="lazy">
+        <img id="dynamicBanner" src="https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=1200&q=80" alt="Weather Banner" class="banner-image" loading="lazy">
         <div class="hero-content">
             <h1>Welcome to My Homepage!</h1>
             <button class="contact-btn" onclick="alert('Contact form coming soon!')">Contact Me</button>
@@ -30,9 +30,90 @@
     
     <script src="weather-widget/scripts/weather-widget.js"></script>
     <script>
+        // Dynamic Banner System
+        class DynamicBanner {
+            constructor() {
+                this.bannerElement = document.getElementById('dynamicBanner');
+                this.weatherImages = {
+                    // Clear/Sunny weather
+                    'clear': 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=1200&q=80', // Sunny mountain landscape
+                    'sunny': 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=1200&q=80',
+                    
+                    // Cloudy weather
+                    'cloudy': 'https://images.unsplash.com/photo-1501594907352-04cda38ebc29?auto=format&fit=crop&w=1200&q=80', // Cloudy sky
+                    'overcast': 'https://images.unsplash.com/photo-1501594907352-04cda38ebc29?auto=format&fit=crop&w=1200&q=80',
+                    'partly cloudy': 'https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=1200&q=80', // Partly cloudy
+                    
+                    // Rainy weather
+                    'rain': 'https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?auto=format&fit=crop&w=1200&q=80', // Rainy day
+                    'rainy': 'https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?auto=format&fit=crop&w=1200&q=80',
+                    'drizzle': 'https://images.unsplash.com/photo-1556075798-4825dfaaf498?auto=format&fit=crop&w=1200&q=80', // Light rain
+                    'showers': 'https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?auto=format&fit=crop&w=1200&q=80',
+                    
+                    // Snow weather
+                    'snow': 'https://images.unsplash.com/photo-1491002052546-bf38f186af56?auto=format&fit=crop&w=1200&q=80', // Snowy landscape
+                    'snowy': 'https://images.unsplash.com/photo-1491002052546-bf38f186af56?auto=format&fit=crop&w=1200&q=80',
+                    'blizzard': 'https://images.unsplash.com/photo-1491002052546-bf38f186af56?auto=format&fit=crop&w=1200&q=80',
+                    
+                    // Stormy weather
+                    'thunderstorm': 'https://images.unsplash.com/photo-1561553873-e8491a564fd0?auto=format&fit=crop&w=1200&q=80', // Storm clouds
+                    'storm': 'https://images.unsplash.com/photo-1561553873-e8491a564fd0?auto=format&fit=crop&w=1200&q=80',
+                    
+                    // Foggy/Misty weather
+                    'fog': 'https://images.unsplash.com/photo-1487621167305-5d248087c724?auto=format&fit=crop&w=1200&q=80', // Foggy morning
+                    'mist': 'https://images.unsplash.com/photo-1487621167305-5d248087c724?auto=format&fit=crop&w=1200&q=80',
+                    'haze': 'https://images.unsplash.com/photo-1487621167305-5d248087c724?auto=format&fit=crop&w=1200&q=80',
+                    
+                    // Default fallback
+                    'default': 'https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=1200&q=80'
+                };
+            }
+            
+            updateBanner(weatherDescription) {
+                if (!weatherDescription) return;
+                
+                const description = weatherDescription.toLowerCase();
+                let imageUrl = this.weatherImages.default;
+                
+                // Match weather description to appropriate image
+                for (const [condition, url] of Object.entries(this.weatherImages)) {
+                    if (description.includes(condition)) {
+                        imageUrl = url;
+                        break;
+                    }
+                }
+                
+                // Smooth transition
+                this.bannerElement.style.opacity = '0.7';
+                setTimeout(() => {
+                    this.bannerElement.src = imageUrl;
+                    this.bannerElement.alt = `Weather Banner - ${weatherDescription}`;
+                    this.bannerElement.style.opacity = '1';
+                }, 300);
+                
+                console.log(`Banner updated for weather: ${weatherDescription}`);
+            }
+        }
+        
+        // Initialize dynamic banner
+        const dynamicBanner = new DynamicBanner();
+        
+        // Enhanced Weather Widget with Banner Integration
+        class EnhancedWeatherWidget extends WeatherWidget {
+            render(currentWeather, forecast) {
+                // Update banner based on current weather
+                if (currentWeather && currentWeather.current && currentWeather.current.description) {
+                    dynamicBanner.updateBanner(currentWeather.current.description);
+                }
+                
+                // Call original render method
+                super.render(currentWeather, forecast);
+            }
+        }
+        
         // Initialize the weather widget when the page loads
         document.addEventListener('DOMContentLoaded', function() {
-            const widget = new WeatherWidget('weatherWidget');
+            const widget = new EnhancedWeatherWidget('weatherWidget');
             
             // Try to get user's location first, fallback to London
             if (navigator.geolocation) {
